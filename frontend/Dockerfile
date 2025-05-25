@@ -1,12 +1,11 @@
 FROM nginx:alpine
-# vide le dossier par défaut
-RUN rm -rf /usr/share/nginx/html/*
 
-# copie uniquement les .html
-COPY templates/event_management_system_app/ /usr/share/nginx/html/
+RUN rm /etc/nginx/conf.d/default.conf
+COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
-# (option) copie aussi un dossier assets si nécessaire
-#COPY assets/ /usr/share/nginx/html/assets/
+
+# Maintenant on copie depuis le contexte racine :
+COPY backend/staticfiles/ /usr/share/nginx/html/static/
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
