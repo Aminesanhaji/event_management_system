@@ -1,46 +1,49 @@
 # Event Management System
 
 ## Description
-Event Management System is a web application built with Django for the backend and a static frontend served via Nginx. It allows users to manage categories and events, view event details, and access an admin interface.
+Event Management System est une application web construite avec Django pour le backend et Nginx pour le frontend. Elle permet de gérer des catégories et des événements, de visualiser les détails et d’accéder à l’interface d’administration.
 
-## Project Structure
+## Structure du projet
 ```
 project-root/
-├── backend/                   # Django project
-│   ├── Dockerfile             # Dockerfile for backend
-│   ├── requirements.txt       # Python dependencies
-│   ├── .env                   # Environment variables for backend
-│   ├── manage.py
-│   ├── event_management_system/
-│   └── event_management_system_app/
-│       ├── models.py
-│       ├── views.py
-│       ├── templates/
-│       └── staticfiles/
-├── frontend/                  # Nginx reverse-proxy and static assets
-│   ├── Dockerfile             # Dockerfile for frontend
-│   ├── nginx.conf             # Nginx configuration
-│   └── static/                # Collected static files
-├── database/
-│   └── init.sql               # Database initialization script
-├── docker-compose.yml         # Compose file for orchestration
-└── README.md                  # This file
+├── backend/                   # Code serveur Django
+├── frontend/                  # Serveur Nginx et fichiers statiques
+├── database/                  # Script d'initialisation de la base
+├── docker-compose.yml         # Orchestration Docker
+└── README.md                  # Documentation du projet
 ```
 
-## Prerequisites
+### Dossier `backend/`
+- Contient le projet Django (`manage.py`, `settings.py`, apps, modèles, vues, templates).
+- `Dockerfile` pour construire l'image Python/Django.
+- `requirements.txt` pour les dépendances Python.
+- `.env` pour les variables d'environnement (SECRET_KEY, accès Postgres).
+- Gère les migrations et la logique métier.
+
+### Dossier `frontend/`
+- Contient la configuration Nginx (`nginx.conf`) pour :
+  - Servir les fichiers statiques (`/static/`).
+  - Reverse-proxy toutes les autres requêtes vers Django (backend).
+- `Dockerfile` pour construire l'image Nginx.
+- Le dossier `static/` regroupe les fichiers collectés par Django.
+
+### Dossier `database/`
+- `init.sql` : script d'initialisation SQL (extensions, données de base).
+
+## Prérequis
 - Docker
 - Docker Compose
 
-## Setup
+## Lancement du projet
 
-1. **Clone the repository**  
+1. **Cloner le dépôt**  
    ```bash
-   git clone <repository-url>
+   git clone <url-du-repo>
    cd project-root
    ```
 
-2. **Configure environment variables**  
-   Edit `backend/.env` with your settings:
+2. **Configurer les variables d’environnement**  
+   Éditer `backend/.env` :
    ```dotenv
    POSTGRES_DB=eventdb
    POSTGRES_USER=eventuser
@@ -48,48 +51,46 @@ project-root/
    DB_HOST=db
    DB_PORT=5432
 
-   DJANGO_SECRET_KEY=your_secret_key
+   DJANGO_SECRET_KEY=ta_secret_key
    DEBUG=True
    ```
 
-## Usage
+3. **Lancer les conteneurs**  
+   ```bash
+   docker-compose up --build -d
+   ```
 
-### 1. Build and run containers
-```bash
-docker-compose up --build -d
-```
+4. **Appliquer les migrations et créer le super-utilisateur**  
+   ```bash
+   docker-compose run --rm backend python manage.py migrate
+   docker-compose run --rm backend python manage.py createsuperuser
+   ```
 
-### 2. Apply migrations and create superuser
-```bash
-docker-compose run --rm backend python manage.py migrate
-docker-compose run --rm backend python manage.py createsuperuser
-```
+5. **Collecter les fichiers statiques**  
+   ```bash
+   docker-compose run --rm backend python manage.py collectstatic --noinput
+   ```
 
-### 3. Collect static files
-```bash
-docker-compose run --rm backend python manage.py collectstatic --noinput
-```
+6. **Redémarrer les services**  
+   ```bash
+   docker-compose up -d
+   ```
 
-### 4. Restart services
-```bash
-docker-compose up -d
-```
+## Accès à l’application
+- Frontend (toutes les pages, proxy vers Django) : http://localhost:3000  
+- Admin Django : http://localhost:3000/admin/
 
-## Accessing the Application
-- Frontend (all pages & proxy to backend): http://localhost:3000
-- Django Admin (via proxy): http://localhost:3000/admin/
-
-## Stopping and Cleaning Up
+## Arrêt et nettoyage
 ```bash
 docker-compose down -v
 ```
 
-## Troubleshooting
-- **Port conflicts**: Ensure ports 3000 (frontend) and 5432 (Postgres) are free or adjust in `docker-compose.yml`.
-- **Missing dependencies**: If you add new Python packages, rebuild the backend image:
+## Dépannage
+- Conflit de ports : vérifier que les ports 3000 (frontend) et 5432 (Postgres) sont libres ou ajuster dans `docker-compose.yml`.
+- Nouvelles dépendances Python : reconstruire l’image backend  
   ```bash
   docker-compose build backend
   ```
 
-## License
-MIT License
+## Licence
+MIT
